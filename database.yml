@@ -1,2 +1,7 @@
+# INFO: We are using localhost but its tunnel to aws
+
 port: 28015
 host: localhost
+suffix: aws_ip_172_31_38_170
+database: ha_ls_session_development
+tables: ['apikey', 'ha_ls_sessions']
