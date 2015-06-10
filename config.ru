@@ -1,0 +1,3 @@
+require_relative 'hamijia_ls_session'
+
+run HamijiaLsSession
