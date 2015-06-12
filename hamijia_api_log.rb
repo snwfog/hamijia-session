@@ -23,7 +23,7 @@ class HamijiaApiLog < Eldr::App
     db_resp = r.table(REQ_API_LOG).insert(db_document.compact.to_h).run(@conn)
 
     unless db_resp['errors'] > 0 || db_resp['inserted'] > 1
-      req['X-API-Log-ID'] = db_resp['generated_keys'].first
+      req.env['HTTP_X_API_LOG_ID'] = db_resp['generated_keys'].first
     end
 
     status, headers, body = @app.call(req.env)
