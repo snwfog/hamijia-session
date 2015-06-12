@@ -11,7 +11,7 @@ port, host, database, suffix, tables = db_config['port'], db_config['host'], db_
 COMPLETE_DB_NAME                     = database + '_' + suffix
 CONN                                 = r.connect(host: host, port: port, db: COMPLETE_DB_NAME)
 
-API_KEY_TABLE = 'apikey' # lol
+API_KEY_TABLE = 'api_key' # lol
 
 namespace :db do
   desc 'Create the local database'
@@ -43,6 +43,12 @@ namespace :db do
         end
       end
     end
+  end
+
+  desc 'Apply index'
+  task :index do
+    puts 'Applying index on "key" column of "api_key" table'.yellow
+    r.table(API_KEY_TABLE).index_create('key').run(CONN)
   end
 end
 
