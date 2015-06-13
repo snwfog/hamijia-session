@@ -15,18 +15,24 @@ class HamijiaApiAuthentication
   end
 
   def is_authorized?(req)
+    puts req.env['HTTP_AUTHORIZATION']
     return false if req.env['HTTP_AUTHORIZATION'].nil?
     validate_api_key(req.env['HTTP_AUTHORIZATION'])
   end
 
   def validate_api_key(authorization_header)
-    key = authorization_header.match(/(?:Bearer:\s?)([\w-]{16})/).captures.first
-    db_resp = r.table('api_key').get_all(key, index: 'key').run(@conn).to_a
+    key = authorization_header.match(/(?:Bearer:\s?)([\w-]{64})/).captures.first
+    puts "Authenticating key #{key}"
+
+    # Retrieve the api key by the hash digest
+    db_resp = r.table('api_key').get_all(key, index: 'key_digest').run(@conn).to_a
 
     db_resp.length > 0
   end
 
   def respond_unauthorized
+    puts 'Unauthorized access'
+
     response = Rack::Response.new
     response.write 'unauthorized'
     response.body = ['unauthorized']

@@ -3,6 +3,7 @@ require 'pry-byebug'
 require 'colorize'
 require 'rethinkdb'
 require 'securerandom'
+require 'digest'
 
 include RethinkDB::Shortcuts
 
@@ -47,29 +48,41 @@ namespace :db do
 
   desc 'Apply index'
   task :index do
-    puts 'Applying index on "key" column of "api_key" table'.yellow
-    r.table(API_KEY_TABLE).index_create('key').run(CONN)
+    api_key_table_indices = %w(key key_digest)
+    list_index = r.table(API_KEY_TABLE).index_list().run(CONN)
+    api_key_table_indices.each do |indice|
+      unless list_index.index indice
+        puts "Creating index #{indice} on table #{API_KEY_TABLE}".yellow
+        r.table(API_KEY_TABLE).index_create(indice).run(CONN)
+      end
+    end
   end
 end
 
 namespace :api do
   desc 'Generate some api key'
-  task :gen, [:number_of_api_key] do |t, args|
-    number = args[:number_of_api_key].to_i
-    puts "Going to generate #{number} API keys".green
-    number.times do
-      begin
-        api_key = 'HA' + SecureRandom.hex(6).scan(/[\w]{4}/).join('-').upcase
-        res     = r.table(API_KEY_TABLE).insert({ key: api_key }).run(CONN)
-        # WARNING: Insert
-        if res['inserted'] == 1
-          puts "Inserting #{api_key}".green
-        else
-          raise "Key #{api_key} was not inserted properly"
-        end
-      ensure
-        puts res.to_s.yellow
+  task :gen, [:api_user] do |t, args|
+    api_client = args[:api_user]
+    puts "Going to generate an API keys for user #{api_client}".magenta
+
+    begin
+      api_key = 'HA' + SecureRandom.hex(6).scan(/[\w]{4}/).join('-').upcase
+      res     = r.table(API_KEY_TABLE).insert({ key: api_key,
+                                                key_digest: Digest::SHA2.new(256).hexdigest(api_key),
+                                                api_client: api_client }).run(CONN)
+
+      # puts Digest::SHA2.new(256).hexdigest(api_key)
+      # binding.pry
+      # WARNING: Insert
+      if res['inserted'] == 1
+        puts "Generated"
+        puts "APIKEY: #{api_key}".yellow.on_light_black
+        puts "DIGEST: #{Digest::SHA2.new(256).hexdigest(api_key)}"
+      else
+        raise "Key #{api_key} was not inserted properly"
       end
+    ensure
+      puts res.to_s.green
     end
   end
 

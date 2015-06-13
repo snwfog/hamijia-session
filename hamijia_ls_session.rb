@@ -17,6 +17,7 @@ class HamijiaLsSession < Eldr::App
 
     response = Rack::Response.new(db_resp.to_json)
     response.header['HTTP_X_API_LOG_ID'] = hash['api_request_log_id']
+    response.header['Content-Type'] = 'application/json'
 
     response
   end
