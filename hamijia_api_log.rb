@@ -35,7 +35,11 @@ class HamijiaApiLog < Eldr::App
   end
 
   def log_response(resp)
-    db_resp = r.table(RESP_API_LOG).insert({ status: resp.status, headers: resp.header.to_h, body: resp.body }).run(@conn)
-    puts db_resp
+    db_resp = r.table(RESP_API_LOG).insert({ api_request_log_id: resp.header.delete('HTTP_X_API_LOG_ID'),
+                                             status: resp.status,
+                                             headers: resp.header.to_h,
+                                             body: JSON.parse(resp.body.first) }).run(@conn)
+
+    resp
   end
 end

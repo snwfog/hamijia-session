@@ -15,6 +15,9 @@ class HamijiaLsSession < Eldr::App
 
     db_resp = r.table('ha_ls_sessions').insert(hash).run(conn)
 
-    Rack::Response.new(db_resp.to_json)
+    response = Rack::Response.new(db_resp.to_json)
+    response.header['HTTP_X_API_LOG_ID'] = hash['api_request_log_id']
+
+    response
   end
 end
