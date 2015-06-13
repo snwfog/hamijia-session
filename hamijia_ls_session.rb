@@ -12,7 +12,11 @@ class HamijiaLsSession < Eldr::App
     @conn = Helpers::DbAccess::CONN
   end
 
-  get '/', -> { [200, { 'Content-Type' => 'txt' }, ['O hai der; serving hamijia-ls-session']] }
+  get '/' do |env|
+    resp = Rack::Response.new(['O hai der; serving hamijia-ls-session'], {'Content-Type' => 'txt'}, Rack::Utils::HTTP_STATUS_CODES.invert['OK'])
+    resp.set_cookie('_ha_hi_der', 'Hello world')
+    resp
+  end
 
   get '/lssession/:ls_session_id' do |env|
     req           = Rack::Request.new(env)
@@ -41,7 +45,7 @@ class HamijiaLsSession < Eldr::App
     # Set cookie back _halssession
     unless db_resp['errors'] > 0
       cookie_halssession = Digest::SHA2.new(256).hexdigest(db_resp['generated_keys'].first)
-      resp.env['rack.session']['_halsession'] = cookie_halssession
+      resp.set_cookie('_halssession', cookie_halssession)
     end
 
     resp

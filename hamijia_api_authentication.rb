@@ -2,7 +2,7 @@ require_relative 'db_access'
 
 class HamijiaApiAuthentication
   def initialize(app)
-    @app = app
+    @app  = app
     @conn = Helpers::DbAccess::CONN
   end
 
@@ -31,13 +31,8 @@ class HamijiaApiAuthentication
   end
 
   def respond_unauthorized
-    puts 'Unauthorized access'
-
-    response = Rack::Response.new
-    response.write 'unauthorized'
-    response.body = ['unauthorized']
-    response.status = 401
-
-    response.finish
+    Rack::Response.new({ :errors => 'Unauthorized' }.to_json,
+                       Rack::Utils::HTTP_STATUS_CODES.invert['Unauthorized'],
+                       { 'Content-Type' => 'application/json' })
   end
 end
