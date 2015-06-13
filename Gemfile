@@ -8,3 +8,5 @@ gem 'jazz_hands', git: 'https://github.com/nixme/jazz_hands', branch: 'bring-you
 gem 'colorize'
 gem 'pry-byebug'
 
+gem 'unicorn'
+

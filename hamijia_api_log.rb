@@ -17,8 +17,6 @@ class HamijiaApiLog < Eldr::App
 
     # We dont care about the validity of this request
     # We just want to log it
-
-    # Open a new connection to db
     log_request_and_add_log_header(req)
 
     resp = @app.call(req.env)
@@ -39,7 +37,7 @@ class HamijiaApiLog < Eldr::App
                   .insert({ api_request_log_id: resp.header.delete('HTTP_X_API_LOG_ID'),
                             status:             resp.status,
                             headers:            resp.header.to_h,
-                            body:               JSON.parse(resp.body.first)}).run(@conn)
+                            body:               resp.header['Content-Type'] =~ /json/ ? JSON.parse(resp.body.first) : resp.body.first }).run(@conn)
 
     resp
   end

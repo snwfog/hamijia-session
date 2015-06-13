@@ -12,6 +12,11 @@ port, host, database, suffix, tables = db_config['port'], db_config['host'], db_
 COMPLETE_DB_NAME                     = database + '_' + suffix
 CONN                                 = r.connect(host: host, port: port, db: COMPLETE_DB_NAME)
 
+APP_PATH = File.dirname(__FILE__)
+REMOTE_DIR = '/home/ubuntu/hamijia/hamijia-ls-session'
+REMOTE_HOST = 'ec2.hamijia-ls-session'
+EXCLUDED_PATH = %w(.* vendor tmp emoji log)
+
 API_KEY_TABLE = 'api_key' # lol
 
 namespace :db do
@@ -92,6 +97,12 @@ namespace :api do
       puts api_key.to_s.yellow
     end
   end
+end
+
+desc 'Rsync local file to remote dir'
+task :sync do
+  exclude_list = EXCLUDED_PATH.inject('') { |sum, path| sum << %Q( --exclude '#{path}') }
+  sh "rsync --delete --quite -IravzP #{APP_PATH} #{REMOTE_HOST}:#{Pathname.new(REMOTE_DIR).parent} #{exclude_list}"
 end
 
 

@@ -9,7 +9,9 @@ class HamijiaApiAuthentication
   def call(env)
     req = Rack::Request.new(env)
 
-    return respond_unauthorized unless is_authorized?(req)
+    unless req.get? || req.path =~ '/'
+      return respond_with_unauthorized unless is_authorized? req
+    end
 
     @app.call(env)
   end
@@ -30,7 +32,7 @@ class HamijiaApiAuthentication
     db_resp.length > 0
   end
 
-  def respond_unauthorized
+  def respond_with_unauthorized
     Rack::Response.new({ :errors => 'Unauthorized' }.to_json,
                        Rack::Utils::HTTP_STATUS_CODES.invert['Unauthorized'],
                        { 'Content-Type' => 'application/json' })
