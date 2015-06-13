@@ -22,9 +22,9 @@ class HamijiaLsSession < Eldr::App
     response = Rack::Response.new
 
     if db_resp
-      response.body = { elements: [db_resp] }
+      response.body = [{ elements: [db_resp] }.to_json]
     else
-      response.body = { elements: [] }
+      response.body = [{ elements: [] }.to_json]
     end
 
     response.header['HTTP_X_API_LOG_ID'] = req.env['HTTP_X_API_LOG_ID']
@@ -41,10 +41,9 @@ class HamijiaLsSession < Eldr::App
 
     db_resp = r.table(HA_LS_SESSION_TABLE).insert(hash).run(@conn)
 
-    response                             = Rack::Response.new(db_resp.to_json)
-    response.header['HTTP_X_API_LOG_ID'] = hash['api_request_log_id']
-    response.header['Content-Type']      = 'application/json'
-
-    response
+    Rack::Response.new([db_resp.to_json], 201, {
+                                          'HTTP_X_API_LOG_ID' => hash['api_request_log_id'],
+                                          'Content-Type'      => 'application/json'
+                                        })
   end
 end

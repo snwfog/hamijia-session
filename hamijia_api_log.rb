@@ -39,7 +39,7 @@ class HamijiaApiLog < Eldr::App
                   .insert({ api_request_log_id: resp.header.delete('HTTP_X_API_LOG_ID'),
                             status:             resp.status,
                             headers:            resp.header.to_h,
-                            body:               resp.body.to_h }).run(@conn)
+                            body:               JSON.parse(resp.body.first)}).run(@conn)
 
     resp
   end
