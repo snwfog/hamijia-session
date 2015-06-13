@@ -13,8 +13,8 @@ class HamijiaLsSession < Eldr::App
     hash = JSON.parse(req.body.read.to_s)
     hash['api_request_log_id'] = req.env['HTTP_X_API_LOG_ID']
 
-    resp = r.table('ha_ls_sessions').insert(hash).run(conn)
+    db_resp = r.table('ha_ls_sessions').insert(hash).run(conn)
 
-    Rack::Response.new(resp.to_json)
+    Rack::Response.new(db_resp.to_json)
   end
 end
