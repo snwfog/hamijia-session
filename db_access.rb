@@ -1,4 +1,6 @@
 require 'rethinkdb'
+require 'yaml'
+
 include RethinkDB::Shortcuts
 
 module Helpers

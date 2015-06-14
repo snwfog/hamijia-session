@@ -102,7 +102,7 @@ end
 desc 'Rsync local file to remote dir'
 task :sync do
   exclude_list = EXCLUDED_PATH.inject('') { |sum, path| sum << %Q( --exclude '#{path}') }
-  sh "rsync --delete --quite -IravzP #{APP_PATH} #{REMOTE_HOST}:#{Pathname.new(REMOTE_DIR).parent} #{exclude_list}"
+  sh "rsync --delete --quiet -IravzP #{APP_PATH}/ #{REMOTE_HOST}:#{REMOTE_DIR}/ #{exclude_list}"
 end
 
 
