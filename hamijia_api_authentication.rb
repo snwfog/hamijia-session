@@ -9,7 +9,7 @@ class HamijiaApiAuthentication
   def call(env)
     req = Rack::Request.new(env)
 
-    unless req.get? || req.path =~ '/'
+    unless req.get? || req.path.match('^/$')
       return respond_with_unauthorized unless is_authorized? req
     end
 
