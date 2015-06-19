@@ -35,7 +35,8 @@ class HamijiaLsSession < Eldr::App
   post '/lssession' do |env|
     req = Rack::Request.new(env)
 
-    hash                      = JSON.parse(req.body.read.to_s)
+    body_content              = req.body.read.to_s
+    hash                      = body_content.empty? ? {} : JSON.parse(body_content)
     hash[:timestamp]          = Time.now.utc
     hash[:api_request_log_id] = req.env['HTTP_X_API_LOG_ID']
 

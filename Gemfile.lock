@@ -92,6 +92,7 @@ GEM
       binding_of_caller (>= 0.7)
       pry (>= 0.9.11)
     rack (1.5.2)
+    rack-cors (0.4.0)
     rack-test (0.6.3)
       rack (>= 1.0)
     railties (4.1.10)
@@ -124,5 +125,6 @@ DEPENDENCIES
   eldr
   jazz_hands!
   pry-byebug
+  rack-cors
   rethinkdb
   unicorn
