@@ -1,0 +1,8 @@
+host='ec2.hamijia-ls-session'
+path='/home/ubuntu/hamijia/hamijia-ls-session'
+
+[restart]
+pkill unicorn
+unicorn -c config/unicorn.rb -D
+
+
