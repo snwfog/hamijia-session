@@ -35,15 +35,14 @@ class HamijiaApiLog < Eldr::App
   end
 
   def log_response(resp)
-    resp = Rack::Response.new(resp) if resp.kind_of? Array
+    resp = Rack::Response.new(*resp) if resp.kind_of? Array
 
-    db_resp = r.table(RESP_API_LOG)
-                  .insert({ api_request_log_id: resp.header.delete('HTTP_X_API_LOG_ID'),
-                            timestamp:          Time.now.utc,
-                            status:             resp.status,
-                            headers:            resp.header.to_h,
-                            body:               resp.header['Content-Type'] =~ /json/ ? JSON.parse(resp.body.first) : resp.body.first }).run(@conn)
-
-    resp.to_a
+    r.table(RESP_API_LOG)
+        .insert({ api_request_log_id: resp.header.delete('HTTP_X_API_LOG_ID'),
+                  timestamp:          Time.now.utc,
+                  status:             resp.status,
+                  headers:            resp.header.to_h,
+                  body:               resp.header['Content-Type'] =~ /json/ ? JSON.parse(resp.body.first) : resp.body.first }).run(@conn)
+    resp
   end
 end

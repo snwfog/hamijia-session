@@ -27,9 +27,9 @@ class HamijiaLsSession < Eldr::App
     db_resp       = r.table(HA_LS_SESSION_TABLE).get(ls_session_id).run(@conn)
 
     Rack::Response.new([{ elements: [db_resp] }.to_json], 200, {
-                                                            'HTTP_X_API_LOG_ID' => hash['api_request_log_id'],
+                                                            'HTTP_X_API_LOG_ID' => req.env['HTTP_X_API_LOG_ID'],
                                                             'Content-Type'      => 'application/json'
-                                                        }).to_a
+                                                        })
   end
 
   post '/lssession' do |env|
@@ -45,7 +45,7 @@ class HamijiaLsSession < Eldr::App
       Rack::Response.new([db_resp.to_json], Rack::Utils::HTTP_STATUS_CODES.invert['Bad Request'], {
                                               'HTTP_X_API_LOG_ID' => hash['api_request_log_id'],
                                               'Content-Type'      => 'application/json'
-                                          }).to_a
+                                          })
     end
 
     resp_cookie_halssession = Digest::SHA2.new(256).hexdigest(db_resp['generated_keys'].first)
@@ -56,7 +56,7 @@ class HamijiaLsSession < Eldr::App
                        Rack::Utils::HTTP_STATUS_CODES.invert['Created'], {
                            'HTTP_X_API_LOG_ID' => hash['api_request_log_id'],
                            'Content-Type'      => 'application/json'
-                       }).to_a
+                       })
   end
 
   # catch app route
