@@ -25,20 +25,25 @@ class HamijiaApiLog < Eldr::App
   end
 
   def log_request_and_add_log_header(req)
-    db_document = req.env.map { |k, v| [k, v.to_s] unless k =~ /rack\./ }
-    db_resp     = r.table(REQ_API_LOG).insert(db_document.compact.to_h).run(@conn)
+    db_document             = Hash[req.env.map { |k, v| [k, v.to_s] unless k =~ /rack\./ }.compact]
+    db_document[:timestamp] = Time.now.utc
+
+    db_resp = r.table(REQ_API_LOG).insert(db_document).run(@conn)
     unless db_resp['errors'] > 0 || db_resp['inserted'] > 1
       req.env['HTTP_X_API_LOG_ID'] = db_resp['generated_keys'].first
     end
   end
 
   def log_response(resp)
+    resp = Rack::Response.new(resp) if resp.kind_of? Array
+
     db_resp = r.table(RESP_API_LOG)
                   .insert({ api_request_log_id: resp.header.delete('HTTP_X_API_LOG_ID'),
+                            timestamp:          Time.now.utc,
                             status:             resp.status,
                             headers:            resp.header.to_h,
                             body:               resp.header['Content-Type'] =~ /json/ ? JSON.parse(resp.body.first) : resp.body.first }).run(@conn)
 
-    resp
+    resp.to_a
   end
 end
