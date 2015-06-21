@@ -12,12 +12,13 @@ port, host, database, suffix, tables = db_config['port'], db_config['host'], db_
 COMPLETE_DB_NAME                     = database + '_' + suffix
 CONN                                 = r.connect(host: host, port: port, db: COMPLETE_DB_NAME)
 
-APP_PATH = File.dirname(__FILE__)
-REMOTE_DIR = '/home/ubuntu/hamijia/hamijia-ls-session'
-REMOTE_HOST = 'ec2.hamijia-ls-session'
+APP_PATH      = File.dirname(__FILE__)
+REMOTE_DIR    = '/home/ubuntu/hamijia/hamijia-ls-session'
+REMOTE_HOST   = 'ec2.hamijia-ls-session'
 EXCLUDED_PATH = %w(.* vendor tmp emoji log)
 
-API_KEY_TABLE = 'api_key' # lol
+API_KEY_TABLE = 'api_key' # FIXME: plurialize
+OFFER_TABLE = 'offers'
 
 namespace :db do
   desc 'Create the local database'
@@ -53,12 +54,16 @@ namespace :db do
 
   desc 'Apply index'
   task :index do
-    api_key_table_indices = %w(key key_digest)
-    list_index = r.table(API_KEY_TABLE).index_list().run(CONN)
-    api_key_table_indices.each do |indice|
-      unless list_index.index indice
-        puts "Creating index #{indice} on table #{API_KEY_TABLE}".yellow
-        r.table(API_KEY_TABLE).index_create(indice).run(CONN)
+    indices = Hash[ API_KEY_TABLE, %w(key key_digest), OFFER_TABLE, %w(sessionId)]
+
+    indices.each do |k, idxArray|
+      list_index = r.table(k).index_list().run(CONN)
+
+      idxArray.each do |idx|
+        unless list_index.index idx
+          puts "Creating index #{idx} on table #{k}".yellow
+          r.table(k).index_create(idx).run(CONN)
+        end
       end
     end
   end
@@ -72,7 +77,7 @@ namespace :api do
 
     begin
       api_key = 'HA' + SecureRandom.hex(6).scan(/[\w]{4}/).join('-').upcase
-      res     = r.table(API_KEY_TABLE).insert({ key: api_key,
+      res     = r.table(API_KEY_TABLE).insert({ key:        api_key,
                                                 key_digest: Digest::SHA2.new(256).hexdigest(api_key),
                                                 api_client: api_client }).run(CONN)
 

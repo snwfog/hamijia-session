@@ -7,10 +7,11 @@ class HamijiaLsSession < Eldr::App
   include RethinkDB::Shortcuts
 
   HA_LS_SESSION_TABLE = 'ha_ls_sessions'
-  HA_OFFER_TABLE      = 'offer'
+  HA_OFFER_TABLE      = 'offers'
 
-  before do
-    @conn = Helpers::DbAccess::CONN
+  before do |env|
+    @conn      = Helpers::DbAccess::CONN
+    @sessionId = env['HTTP_AUTHORIZATION'][-64..-1]
   end
 
   get '/' do |env|
@@ -60,10 +61,22 @@ class HamijiaLsSession < Eldr::App
                        })
   end
 
+  get '/owner/offers/:id' do |env|
+    req            = Rack::Request.new(env)
+    owner_offer_id = req.env['eldr.params']['id']
+    db_resp        = r.table(HA_OFFER_TABLE).get(owner_offer_id).run(@conn)
+    model          = db_resp if (db_resp && db_resp['sessionId'] == @sessionId)
+    Rack::Response.new({ 'owner/offers' => [model].compact! }.to_json,
+                       Rack::Utils::HTTP_STATUS_CODES.invert['OK'], {
+                         'HTTP_X_API_LOG_ID' => env['HTTP_X_API_LOG_ID'],
+                         'Content-Type'      => 'application/json'
+                       })
+  end
+
   post '/owner/offers' do |env|
-    req = Rack::Request.new(env)
+    req     = Rack::Request.new(env)
     # raise 'Body should be empty for new offer creation' unless req.body.read.to_s.empty?
-    db_resp = r.table(HA_OFFER_TABLE).insert({ timestamp: Time.now.utc }).run(@conn)
+    db_resp = r.table(HA_OFFER_TABLE).insert({ timestamp: Time.now.utc, sessionId: @sessionId }).run(@conn)
     raise if db_resp['errors'] > 0
     response_body = { 'owner/offers' => [{ :id => db_resp['generated_keys'].first }] }
 
