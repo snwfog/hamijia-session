@@ -8,6 +8,7 @@ class HamijiaLsSession < Eldr::App
 
   HA_LS_SESSION_TABLE = 'ha_ls_sessions'
   HA_OFFER_TABLE      = 'offers'
+  HTTP_STATUS_CODES   = Rack::Utils::HTTP_STATUS_CODES.invert
 
   before do |env|
     @conn      = Helpers::DbAccess::CONN
@@ -29,8 +30,8 @@ class HamijiaLsSession < Eldr::App
     db_resp       = r.table(HA_LS_SESSION_TABLE).get(ls_session_id).run(@conn)
 
     Rack::Response.new([{ elements: [db_resp] }.to_json], 200, {
-                                                            'HTTP_X_API_LOG_ID' => req.env['HTTP_X_API_LOG_ID'],
-                                                            'Content-Type'      => 'application/json'
+                                                          'HTTP_X_API_LOG_ID' => req.env['HTTP_X_API_LOG_ID'],
+                                                          'Content-Type'      => 'application/json'
                                                         })
   end
 
@@ -45,8 +46,8 @@ class HamijiaLsSession < Eldr::App
     db_resp = r.table(HA_LS_SESSION_TABLE).insert(hash).run(@conn)
     if db_resp['errors'] > 0
       Rack::Response.new([db_resp.to_json], Rack::Utils::HTTP_STATUS_CODES.invert['Bad Request'], {
-                                              'HTTP_X_API_LOG_ID' => hash['api_request_log_id'],
-                                              'Content-Type'      => 'application/json'
+                                            'HTTP_X_API_LOG_ID' => hash['api_request_log_id'],
+                                            'Content-Type'      => 'application/json'
                                           })
     end
 
@@ -56,8 +57,8 @@ class HamijiaLsSession < Eldr::App
     # FIXME: Cookie should come from client
     Rack::Response.new([{ id: resp_inserted_id, session_id: resp_cookie_halssession }.to_json],
                        Rack::Utils::HTTP_STATUS_CODES.invert['Created'], {
-                           'HTTP_X_API_LOG_ID' => hash['api_request_log_id'],
-                           'Content-Type'      => 'application/json'
+                         'HTTP_X_API_LOG_ID' => hash['api_request_log_id'],
+                         'Content-Type'      => 'application/json'
                        })
   end
 
@@ -66,11 +67,9 @@ class HamijiaLsSession < Eldr::App
     owner_offer_id = req.env['eldr.params']['id']
     db_resp        = r.table(HA_OFFER_TABLE).get(owner_offer_id).run(@conn)
     model          = db_resp if (db_resp && db_resp['sessionId'] == @sessionId)
-    Rack::Response.new({ 'owner/offers' => [model].compact! }.to_json,
-                       Rack::Utils::HTTP_STATUS_CODES.invert['OK'], {
-                         'HTTP_X_API_LOG_ID' => env['HTTP_X_API_LOG_ID'],
-                         'Content-Type'      => 'application/json'
-                       })
+    status_code    = model.nil? ? HTTP_STATUS_CODES['Not Found'] : HTTP_STATUS_CODES['OK']
+
+    build_response({ 'owner/offers' => [model].compact }.to_json, status_code)
   end
 
   post '/owner/offers' do |env|
@@ -82,8 +81,8 @@ class HamijiaLsSession < Eldr::App
 
     Rack::Response.new(response_body.to_json,
                        Rack::Utils::HTTP_STATUS_CODES.invert['Created'], {
-                           'HTTP_X_API_LOG_ID' => env['HTTP_X_API_LOG_ID'],
-                           'Content-Type'      => 'application/json'
+                         'HTTP_X_API_LOG_ID' => env['HTTP_X_API_LOG_ID'],
+                         'Content-Type'      => 'application/json'
                        })
   end
 
@@ -92,5 +91,17 @@ class HamijiaLsSession < Eldr::App
     req  = Rack::Request.new(env)
     hash = { 'HTTP_X_API_LOG_ID' => req.env['HTTP_X_API_LOG_ID'] } unless req.env['HTTP_X_API_LOG_ID'].nil?
     raise 'Invalid route'
+  end
+
+  private
+
+  def build_response(body, status = HTTP_STATUS_CODES['OK'], header = {})
+    header = header.merge({
+                            'HTTP_X_API_LOG_ID' => env['HTTP_X_API_LOG_ID'],
+                            'Content-Type'      => 'application/json'
+                          })
+
+
+    Rack::Response.new([body], status, header)
   end
 end

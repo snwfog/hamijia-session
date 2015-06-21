@@ -2,7 +2,6 @@ host='ec2.hamijia-ls-session'
 path='/home/ubuntu/hamijia/hamijia-ls-session'
 
 [deploy]
-pwd
 pkill unicorn
 /home/ubuntu/.rbenv/shims/bundle install
 /home/ubuntu/.rbenv/shims/unicorn -c config/unicorn.rb -D
