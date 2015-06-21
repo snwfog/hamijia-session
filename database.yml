@@ -4,4 +4,4 @@ port: 28015
 host: localhost
 suffix: aws_ip_172_31_38_170
 database: ha_ls_session_development
-tables: ['api_key', 'ha_ls_sessions', 'request_api_log', 'response_api_log']
+tables: ['api_key', 'ha_ls_sessions', 'request_api_log', 'response_api_log', 'offer']

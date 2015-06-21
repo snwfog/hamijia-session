@@ -35,6 +35,6 @@ class HamijiaApiAuthentication
   def respond_with_unauthorized
     Rack::Response.new({ :errors => 'Unauthorized' }.to_json,
                        Rack::Utils::HTTP_STATUS_CODES.invert['Unauthorized'],
-                       { 'Content-Type' => 'application/json' }).to_a
+                       { 'Content-Type' => 'application/json' })
   end
 end

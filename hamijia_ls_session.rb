@@ -7,6 +7,7 @@ class HamijiaLsSession < Eldr::App
   include RethinkDB::Shortcuts
 
   HA_LS_SESSION_TABLE = 'ha_ls_sessions'
+  HA_OFFER_TABLE      = 'offer'
 
   before do
     @conn = Helpers::DbAccess::CONN
@@ -55,6 +56,20 @@ class HamijiaLsSession < Eldr::App
     Rack::Response.new([{ id: resp_inserted_id, session_id: resp_cookie_halssession }.to_json],
                        Rack::Utils::HTTP_STATUS_CODES.invert['Created'], {
                            'HTTP_X_API_LOG_ID' => hash['api_request_log_id'],
+                           'Content-Type'      => 'application/json'
+                       })
+  end
+
+  post '/owner/offers' do |env|
+    req = Rack::Request.new(env)
+    # raise 'Body should be empty for new offer creation' unless req.body.read.to_s.empty?
+    db_resp = r.table(HA_OFFER_TABLE).insert({ timestamp: Time.now.utc }).run(@conn)
+    raise if db_resp['errors'] > 0
+    response_body = { :offers => { :id => db_resp['generated_keys'].first } }
+
+    Rack::Response.new(response_body.to_json,
+                       Rack::Utils::HTTP_STATUS_CODES.invert['Created'], {
+                           'HTTP_X_API_LOG_ID' => env['HTTP_X_API_LOG_ID'],
                            'Content-Type'      => 'application/json'
                        })
   end

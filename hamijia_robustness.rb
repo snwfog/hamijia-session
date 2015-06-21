@@ -5,7 +5,7 @@ class HamijiaRobustness
 
   def call(env)
     @app.call(env)
-  rescue
+  rescue Exception => e
     [400, { 'Content-Type' => 'application/json' }, [{ errors: 'Something went wrong' }.to_json]]
   end
 end
