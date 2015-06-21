@@ -65,7 +65,7 @@ class HamijiaLsSession < Eldr::App
     # raise 'Body should be empty for new offer creation' unless req.body.read.to_s.empty?
     db_resp = r.table(HA_OFFER_TABLE).insert({ timestamp: Time.now.utc }).run(@conn)
     raise if db_resp['errors'] > 0
-    response_body = { :offers => { :id => db_resp['generated_keys'].first } }
+    response_body = { 'owner/offers' => [{ :id => db_resp['generated_keys'].first }] }
 
     Rack::Response.new(response_body.to_json,
                        Rack::Utils::HTTP_STATUS_CODES.invert['Created'], {
