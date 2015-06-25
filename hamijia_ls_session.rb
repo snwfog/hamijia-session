@@ -44,22 +44,14 @@ class HamijiaLsSession < Eldr::App
     hash[:api_request_log_id] = req.env['HTTP_X_API_LOG_ID']
 
     db_resp = r.table(HA_LS_SESSION_TABLE).insert(hash).run(@conn)
-    if db_resp['errors'] > 0
-      Rack::Response.new([db_resp.to_json], Rack::Utils::HTTP_STATUS_CODES.invert['Bad Request'], {
-                                            'HTTP_X_API_LOG_ID' => hash['api_request_log_id'],
-                                            'Content-Type'      => 'application/json'
-                                          })
-    end
+    return build_response([db_resp.to_json], HTTP_STATUS_CODES['Bad Request']) if db_resp['errors'] > 0
 
-    resp_cookie_halssession = Digest::SHA2.new(256).hexdigest(db_resp['generated_keys'].first)
-    resp_inserted_id        = db_resp['generated_keys'].first
+    user_session_id_halssession = Digest::SHA2.new(256).hexdigest(db_resp['generated_keys'].first)
+    user_id                     = db_resp['generated_keys'].first
+    response_obj                = { users: [{ id: user_id, session_id: user_session_id_halssession }] }
 
     # FIXME: Cookie should come from client
-    Rack::Response.new([{ id: resp_inserted_id, session_id: resp_cookie_halssession }.to_json],
-                       Rack::Utils::HTTP_STATUS_CODES.invert['Created'], {
-                         'HTTP_X_API_LOG_ID' => hash['api_request_log_id'],
-                         'Content-Type'      => 'application/json'
-                       })
+    build_response(response_obj.to_json, HTTP_STATUS_CODES['Created'])
   end
 
   get '/owner/offers/:id' do |env|

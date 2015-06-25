@@ -42,7 +42,7 @@ class HamijiaApiLog < Eldr::App
                   timestamp:          Time.now.utc,
                   status:             resp.status,
                   headers:            resp.header.to_h,
-                  body:               resp.header['Content-Type'] =~ /json/ ? JSON.parse(resp.body.first) : resp.body.first }).run(@conn)
+                  body:               (resp.header['Content-Type'] =~ /json/ && resp.body.first.kind_of?(String)) ? JSON.parse(resp.body.first) : resp.body.first }).run(@conn)
     resp
   end
 end
