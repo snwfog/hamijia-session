@@ -104,10 +104,28 @@ namespace :api do
   end
 end
 
-desc 'Rsync local file to remote dir'
-task :sync do
-  exclude_list = EXCLUDED_PATH.inject('') { |sum, path| sum << %Q( --exclude '#{path}') }
-  sh "rsync --delete --quiet -IravzP #{APP_PATH}/ #{REMOTE_HOST}:#{REMOTE_DIR}/ #{exclude_list}"
+# Deployment
+namespace :dep do
+  desc 'Rsync local file to remote dir'
+  task :sync, [:debug] do |t, args|
+    # Sync the project folder with remote dir
+    puts 'Syncing remote app folder...'.blue
+    exclude_list = EXCLUDED_PATH.inject('') { |sum, path| sum << %Q( --exclude '#{path}') }
+    sh "rsync --delete #{'--quiet' unless args[:debug] =~ /d/i} -IravzP #{APP_PATH}/ #{REMOTE_HOST}:#{REMOTE_DIR}/ #{exclude_list}"
+  end
+
+  desc 'Create deployment dir'
+  task :setup do
+    # Create deployment dir
+    puts "Creating deployment dir #{REMOTE_DIR}...".blue
+    sh "ssh ubuntu@#{REMOTE_HOST} 'mkdir -p #{REMOTE_DIR}'" do |ok, res|
+      if ok
+        puts 'Created.'.green
+      else
+        puts "Failed to create dir #{REMOTE_DIR}. (#{res.to_s})".red
+      end
+    end
+  end
 end
 
 
