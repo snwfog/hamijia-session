@@ -15,7 +15,7 @@ CONN                                 = r.connect(host: host, port: port, db: COM
 APP_PATH      = File.dirname(__FILE__)
 REMOTE_DIR    = '/home/ubuntu/hamijia/hamijia-ls-session'
 REMOTE_HOST   = 'ec2.hamijia-ls-session'
-EXCLUDED_PATH = %w(.* vendor tmp emoji log)
+EXCLUDED_PATH = %w(.* vendor tmp)
 
 API_KEY_TABLE = 'api_key' # FIXME: plurialize
 OFFER_TABLE = 'offers'
